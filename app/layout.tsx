@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang='en' className='h-full'>
       <body
-        className='antialiased h-full bg-black text-white flex flex-col items-center justify-center font-sans'
+        className='antialiased h-full bg-neutral-900 text-white font-sans'
       >
         {children}
       </body>
