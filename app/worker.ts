@@ -24,7 +24,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   const muxer = new Muxer({
     target: new ArrayBufferTarget,
     video: {
-      codec: 'hevc',
+      codec: 'av1',
       width: config.width,
       height: config.height,
       frameRate: config.framerate,
@@ -47,7 +47,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   })
 
   const encoderConfig: VideoEncoderConfig = {
-    codec: 'hev1.1.6.L150.90',
+    codec: 'av01.0.12M.08',
     width: config.width,
     height: config.height,
     bitrate: config.bitrate,
@@ -59,21 +59,10 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     numberOfChannels: config.numberOfChannels,
     sampleRate: config.samplerate,
   }
-  await Promise.all([
-    (async () => {
-      if ((await VideoEncoder.isConfigSupported(encoderConfig)).supported)
-        encoder.configure(encoderConfig)
-      else
-        throw new TypeError('This config is not supported')
-    })(),
-    (async () => {
-      if ((await AudioEncoder.isConfigSupported(audioEncoderConfig)).supported)
-        audioEncoder.configure(audioEncoderConfig)
-      else
-        throw new TypeError('This config is not supported')
-    })(),
-  ])
+  encoder.configure(encoderConfig)
+  audioEncoder.configure(audioEncoderConfig)
 
+  const loadingArray = new Uint8ClampedArray(config.sharedBuffer)
   const duration = setup(canvas)
   const reader = config.audioStream.getReader()
   for (let isFirst = true, offset = 0; ; isFirst = false) {
@@ -84,19 +73,25 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     if (chunk.timestamp - offset > duration) break
     audioEncoder.encode(chunk)
     chunk.close()
+    loadingArray[0] = (0.5 * (chunk.timestamp - offset) / duration) * 255
   }
 
   // Convert microseconds to frames
-  const frames = duration * BigInt(config.framerate) / BigInt('1000000')
-  for (let frameNo = BigInt('0'); frameNo <= frames; frameNo++) {
-    const timestamp = Number(frameNo * BigInt('1000000')) / config.framerate
+  const frames = duration * config.framerate / 1_000_000
+  for (let frameNo = 0; frameNo <= frames; frameNo++) {
+    const timestamp = frameNo * 1_000_000 / config.framerate
     drawFrame(timestamp)
     const frame = new VideoFrame(canvas, { timestamp })
     encoder.encode(frame)
     frame.close()
+    loadingArray[0] = (0.5 + 0.5 * timestamp / duration) * 255
   }
 
+  loadingArray[1] = 1
   await encoder.flush()
   muxer.finalize()
-  self.postMessage(muxer.target.buffer)
-}, {once: true})
+  encoder.close()
+  self.postMessage(muxer.target.buffer, {
+    transfer: [ muxer.target.buffer ],
+  })
+})

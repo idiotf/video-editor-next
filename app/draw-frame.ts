@@ -9,7 +9,7 @@ let context: OffscreenCanvasRenderingContext2D
 export function setup(canvas: OffscreenCanvas) {
   targetCanvas = canvas
   context = canvas.getContext('2d') || (() => { throw new TypeError('Canvas2D is not supported') })()
-  return BigInt('5') * BigInt('1000000') // duration (microseconds)
+  return 5 * 1_000_000 // duration (microseconds)
 }
 
 function reset() {

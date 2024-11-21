@@ -11,5 +11,5 @@ declare var MediaStreamTrackProcessor: {
     track: MediaStreamTrack
     maxBufferSize?: number
   }): MediaStreamTrackProcessor
-  new (options: MediaStreamTrack): MediaStreamTrackProcessor
+  new (track: MediaStreamTrack, bufferSize?: number): MediaStreamTrackProcessor
 }

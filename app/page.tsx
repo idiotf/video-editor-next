@@ -5,49 +5,63 @@ import getAudioStream from './audio-processor'
 import type { Configuration } from './worker'
 
 export default function Home() {
-  const videoRef = React.useRef<HTMLVideoElement>(null)
-  // const [audioStream, setAudioStream] = React.useState<ReadableStream<AudioData> | null>(null)
+  const [worker, setWorker] = React.useState<Worker | null>(null)
+  const [blobURL, setBlobURL] = React.useState<string | undefined>(undefined)
+  const buttonRef = React.useRef<HTMLButtonElement>(null)
+  const defaultConfig: Omit<Configuration, 'audioStream' | 'sharedBuffer' | 'audioStart'> = {
+    width: 3384,
+    height: 1440,
+    framerate: 60,
+    bitrate: 18_000_000, // 18Mbps
+    audioBitrate: 192_000, // 192Kbps
+    contentType: 'video/mp4',
+    samplerate: 48000,
+    numberOfChannels: 2,
+  }
+  const createVideo: React.MouseEventHandler<HTMLButtonElement> = async () => {
+    if (!worker) return
+    if (buttonRef.current) {
+      buttonRef.current.textContent = 'Loading data...'
+      buttonRef.current.disabled = true
+    }
+    const sharedBuffer = new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * 2)
+    const loadingArray = new Uint8ClampedArray(sharedBuffer)
+    const audioStream = await getAudioStream({
+      bitrate: defaultConfig.bitrate,
+      contentType: defaultConfig.contentType,
+      samplerate: defaultConfig.samplerate,
+    })
+    if (buttonRef.current) buttonRef.current.textContent = 'Encoding... (0%)'
+    const config: Configuration = {
+      ...defaultConfig,
+      audioStream,
+      sharedBuffer,
+    }
+    const loadingAnimation = requestAnimationFrame(function frame() {
+      if (!buttonRef.current?.disabled) return
+      if (loadingArray[1]) buttonRef.current.textContent = `Finalizing...`
+      else buttonRef.current.textContent = `Encoding... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
+      requestAnimationFrame(frame)
+    })
+    worker.postMessage(config, [config.audioStream])
+    worker.addEventListener('message', ({ data }: MessageEvent<ArrayBuffer>) => {
+      const blob = new Blob([data], { type: defaultConfig.contentType })
+      setBlobURL(URL.createObjectURL(blob))
+      cancelAnimationFrame(loadingAnimation)
+      if (buttonRef.current) {
+        buttonRef.current.textContent = 'Create Video'
+        buttonRef.current.disabled = false
+      }
+    })
+  }
   React.useEffect(() => {
     const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
-    const sharedBuffer = new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT)
-    // const loadingArray = new Uint8Array(sharedBuffer)
-    let blobURL = ''
-    ;(async () => {
-      const configWithoutAudioTrack: Omit<Configuration, 'audioStream'> = {
-        width: 3384,
-        height: 1440,
-        framerate: 60,
-        bitrate: 18_000_000, // 18Mbps
-        audioBitrate: 192_000, // 192Kbps
-        contentType: 'video/mp4',
-        samplerate: 48000,
-        numberOfChannels: 2,
-        sharedBuffer,
-      }
-      const audioStream = await getAudioStream({
-        bitrate: configWithoutAudioTrack.bitrate,
-        contentType: configWithoutAudioTrack.contentType,
-        samplerate: configWithoutAudioTrack.samplerate,
-      })
-      const config: Configuration = {
-        ...configWithoutAudioTrack,
-        audioStream,
-      }
-      worker.postMessage(config, [audioStream])
-      worker.addEventListener('message', ({ data }: MessageEvent<ArrayBuffer>) => {
-        const blob = new Blob([data], { type: config.contentType })
-        blobURL = URL.createObjectURL(blob)
-        if (videoRef.current) videoRef.current.src = blobURL
-      })
-    })()
-    return () => {
-      worker.terminate()
-      URL.revokeObjectURL(blobURL)
-    }
-  })
+    setWorker(worker)
+  }, [])
   return (
     <div className='p-8'>
-      <video ref={videoRef} controls className='w-1/2 bg-black' />
+      <video src={blobURL} controls className='w-[540px] bg-black bg-gradient-to-r aspect-video' />
+      <button ref={buttonRef} onClick={createVideo} className='p-2 border border-gray-800 rounded-md mt-2 bg-zinc-900'>Create Video</button>
     </div>
   )
 }
