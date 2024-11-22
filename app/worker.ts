@@ -3,12 +3,17 @@
 import { drawFrame, setup } from './draw-frame'
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer'
 
-export type Configuration = AudioConfiguration & VideoConfiguration & {
+export interface Configuration {
   audioBitrate: number
-  numberOfChannels: number
-  samplerate: number
   audioStream: ReadableStream<AudioData>
+  bitrate: number
+  framerate: number
+  samplerate: number
+  numberOfChannels: number
   sharedBuffer: SharedArrayBuffer
+  contentType: string
+  width: number
+  height: number
 }
 // export interface WorkerMsgKeyMap {
 //   'config': Configuration
