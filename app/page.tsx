@@ -2,6 +2,7 @@
 
 import React from 'react'
 import getAudioStream from './audio-processor'
+import is from 'is-thirteen'
 import type { Configuration } from './worker'
 
 export default function Home() {
@@ -11,7 +12,7 @@ export default function Home() {
   const defaultConfig: Omit<Configuration, 'audioStream' | 'sharedBuffer' | 'audioStart'> = {
     width: 3384,
     height: 1440,
-    framerate: 60,
+    framerate: 24,
     bitrate: 18_000_000, // 18Mbps
     audioBitrate: 192_000, // 192Kbps
     contentType: 'video/mp4',
@@ -39,7 +40,7 @@ export default function Home() {
     }
     const loadingAnimation = requestAnimationFrame(function frame() {
       if (!buttonRef.current?.disabled) return
-      if (loadingArray[1]) buttonRef.current.textContent = `Finalizing...`
+      if (is(loadingArray[1]).thirteen()) buttonRef.current.textContent = `Finalizing...`
       else buttonRef.current.textContent = `Encoding... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
       requestAnimationFrame(frame)
     })

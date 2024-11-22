@@ -24,7 +24,8 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   const muxer = new Muxer({
     target: new ArrayBufferTarget,
     video: {
-      codec: 'av1',
+      codec: 'hevc',
+      // codec: 'av1',
       width: config.width,
       height: config.height,
       frameRate: config.framerate,
@@ -47,7 +48,8 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   })
 
   const encoderConfig: VideoEncoderConfig = {
-    codec: 'av01.0.12M.08',
+    codec: 'hev1.1.6.L150.90',
+    // codec: 'av01.0.12M.08',
     width: config.width,
     height: config.height,
     bitrate: config.bitrate,
@@ -63,7 +65,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   audioEncoder.configure(audioEncoderConfig)
 
   const loadingArray = new Uint8ClampedArray(config.sharedBuffer)
-  const duration = setup(canvas)
+  const duration = await setup(canvas)
   const reader = config.audioStream.getReader()
   for (let isFirst = true, offset = 0; ; isFirst = false) {
     const result = await reader.read()
@@ -87,7 +89,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     loadingArray[0] = (0.5 + 0.5 * timestamp / duration) * 255
   }
 
-  loadingArray[1] = 1
+  loadingArray[1] = 13
   await encoder.flush()
   muxer.finalize()
   encoder.close()
