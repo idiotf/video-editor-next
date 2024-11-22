@@ -29,8 +29,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   const muxer = new Muxer({
     target: new ArrayBufferTarget,
     video: {
-      codec: 'hevc',
-      // codec: 'av1',
+      codec: 'vp9',
       width: config.width,
       height: config.height,
       frameRate: config.framerate,
@@ -53,8 +52,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   })
 
   const encoderConfig: VideoEncoderConfig = {
-    codec: 'hev1.1.6.L150.90',
-    // codec: 'av01.0.12M.08',
+    codec: 'vp09.02.10.10.01.09.16.09.01',
     width: config.width,
     height: config.height,
     bitrate: config.bitrate,
@@ -80,8 +78,9 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     if (chunk.timestamp - offset > duration) break
     audioEncoder.encode(chunk)
     chunk.close()
-    loadingArray[0] = (0.5 * (chunk.timestamp - offset) / duration) * 255
+    loadingArray[0] = (chunk.timestamp - offset) * 255 / duration
   }
+  loadingArray[1] = 1
 
   // Convert microseconds to frames
   const frames = duration * config.framerate / 1_000_000
@@ -91,11 +90,17 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     const frame = new VideoFrame(canvas, { timestamp })
     encoder.encode(frame)
     frame.close()
-    loadingArray[0] = (0.5 + 0.5 * timestamp / duration) * 255
+    loadingArray[0] = timestamp * 255 / duration
   }
 
-  loadingArray[1] = 13
+  loadingArray[1] = 2
+  const queueSize = encoder.encodeQueueSize
+  encoder.addEventListener('dequeue', function dequeue() {
+    if (loadingArray[1] != 2 || !encoder.encodeQueueSize) return encoder.removeEventListener('dequeue', dequeue)
+    loadingArray[0] = (queueSize - encoder.encodeQueueSize) * 255 / queueSize
+  })
   await encoder.flush()
+  loadingArray[1] = 3
   muxer.finalize()
   encoder.close()
   self.postMessage(muxer.target.buffer, {

@@ -3,6 +3,10 @@ export default async function getAudioStream(config: AudioConfiguration) {
     sampleRate: config.samplerate,
   })
   const mediaStreamDestination = new MediaStreamAudioDestinationNode(audioContext)
+  const { stream } = mediaStreamDestination
+  const [ track ] = stream.getAudioTracks()
+  if (!track) throw new TypeError('Audio track is not existing')
+  const processor = new MediaStreamTrackProcessor(track)
 
   const buffer = await audioContext.decodeAudioData(await fetch('DOORS.mp3').then(v => v.arrayBuffer()))
   const bufferSourceNode = new AudioBufferSourceNode(audioContext, {
@@ -11,9 +15,5 @@ export default async function getAudioStream(config: AudioConfiguration) {
   bufferSourceNode.connect(mediaStreamDestination)
   bufferSourceNode.start()
 
-  const { stream } = mediaStreamDestination
-  const [ track ] = stream.getAudioTracks()
-  if (!track) throw new TypeError('Audio track is not existing')
-  const processor = new MediaStreamTrackProcessor(track)
   return processor.readable
 }

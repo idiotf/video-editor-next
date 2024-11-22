@@ -13,9 +13,3 @@ declare var MediaStreamTrackProcessor: {
   }): MediaStreamTrackProcessor
   new (track: MediaStreamTrack, bufferSize?: number): MediaStreamTrackProcessor
 }
-
-declare module 'is-thirteen' {
-  export default function is(x: number): {
-    thirteen: () => boolean
-  }
-}

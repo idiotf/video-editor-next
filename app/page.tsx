@@ -2,7 +2,6 @@
 
 import React from 'react'
 import getAudioStream from './audio-processor'
-import is from 'is-thirteen'
 import type { Configuration } from './worker'
 
 export default function Home() {
@@ -16,7 +15,7 @@ export default function Home() {
     bitrate: 18_000_000, // 18Mbps
     audioBitrate: 192_000, // 192Kbps
     contentType: 'video/mp4',
-    samplerate: 48000,
+    samplerate: 44_100, // 44.1kHz
     numberOfChannels: 2,
   }
   const createVideo: React.MouseEventHandler<HTMLButtonElement> = async () => {
@@ -40,8 +39,20 @@ export default function Home() {
     }
     const loadingAnimation = requestAnimationFrame(function frame() {
       if (!buttonRef.current?.disabled) return
-      if (is(loadingArray[1]).thirteen()) buttonRef.current.textContent = `Finalizing...`
-      else buttonRef.current.textContent = `Encoding... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
+      switch (loadingArray[1]) {
+        case 0:
+          buttonRef.current.textContent = `Loading Audio... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
+          break
+        case 1:
+          buttonRef.current.textContent = `Loading Video... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
+          break
+        case 2:
+          buttonRef.current.textContent = `Encoding... (${(loadingArray[0] * 100 / 255).toFixed(1)}%)`
+          break
+        case 3:
+          buttonRef.current.textContent = 'Finalizing...'
+          break
+      }
       requestAnimationFrame(frame)
     })
     worker.postMessage(config, [config.audioStream])

@@ -109,13 +109,18 @@ function loadUniformLocations(gl: WebGLRenderingContext, program: WebGLProgram, 
 }
 
 class Matrix4 {
-  matrix
+  matrix: [
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+    number, number, number, number,
+  ]
   constructor(matrix = [
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
     0, 0, 0, 1,
-  ]) {
+  ] as typeof this.matrix) {
     this.matrix = matrix
   }
 
