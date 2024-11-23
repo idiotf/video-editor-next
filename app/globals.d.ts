@@ -5,6 +5,7 @@ interface MediaStreamTrackProcessor {
   readable: ReadableStream<AudioData>
 }
 
+// eslint-disable-next-line no-var
 declare var MediaStreamTrackProcessor: {
   prototype: MediaStreamTrackProcessor
   new (options: {

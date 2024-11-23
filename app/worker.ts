@@ -1,5 +1,3 @@
-/// <reference path='types.d.ts' />
-
 import { drawFrame, setup } from './draw-frame'
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer'
 

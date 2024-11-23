@@ -61,7 +61,7 @@ export async function setup(canvas: OffscreenCanvas) {
   gl.activeTexture(gl.TEXTURE1)
   gl.bindTexture(gl.TEXTURE_2D, texture)
 
-  draw = timestamp => {
+  draw = () => {
     gl.viewport(0, 0, canvas.width, canvas.height)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)

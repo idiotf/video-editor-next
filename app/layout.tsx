@@ -16,18 +16,16 @@ import './globals.css'
 export const metadata: Metadata = {
   title: 'Video Editor',
   description: 'A simple video editor',
+  authors: {
+    url: 'https://github.com/idiotf',
+    name: 'idiotf',
+  },
 }
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: { readonly children: React.ReactNode }) {
   return (
     <html lang='en' className='h-full'>
-      <body
-        className='antialiased h-full bg-neutral-900 text-white font-sans'
-      >
+      <body className='antialiased h-full bg-neutral-900 text-white font-sans'>
         {children}
       </body>
     </html>
