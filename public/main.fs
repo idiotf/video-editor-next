@@ -127,6 +127,8 @@ void main() {
     if (rayVector.x > PI/2.0) rayVector.x *= -1.0;
     if (rayVector.y > PI/2.0) rayVector.y *= -1.0;
   }
+  rayCol = vec4(abs(uv), 1.0, 1.0);
+  return;
   Ray ray;
   ray.pos = vec3(u_matrix * vec4(0.0, 0.0, 0.0, 1.0));
   ray.vec = vec3(u_matrix * vec4(rayVector, 1.0));
