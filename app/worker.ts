@@ -91,6 +91,7 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
     encoder.encode(frame)
     frame.close()
     loadingArray[0] = timestamp * 255 / duration
+    await new Promise(resolve => encoder.addEventListener('dequeue', resolve, { once: true }))
   }
 
   loadingArray[1] = 2
