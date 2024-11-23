@@ -13,7 +13,10 @@ export default async function getAudioStream(config: AudioConfiguration) {
     buffer,
   })
   bufferSourceNode.connect(mediaStreamDestination)
-  bufferSourceNode.start()
 
+  const start = () => {
+    bufferSourceNode.start()
+  }
+  start()
   return processor.readable
 }

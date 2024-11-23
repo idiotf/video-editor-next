@@ -57,6 +57,7 @@ export default function Home() {
     })
     worker.postMessage(config, [config.audioStream])
     worker.addEventListener('message', ({ data }: MessageEvent<ArrayBuffer>) => {
+      if (blobURL) URL.revokeObjectURL(blobURL)
       const blob = new Blob([data], { type: defaultConfig.contentType })
       setBlobURL(URL.createObjectURL(blob))
       cancelAnimationFrame(loadingAnimation)

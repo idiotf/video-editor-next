@@ -68,8 +68,8 @@ self.addEventListener('message', async ({ data: config }: MessageEvent<Configura
   audioEncoder.configure(audioEncoderConfig)
 
   const loadingArray = new Uint8ClampedArray(config.sharedBuffer)
-  const duration = await setup(canvas)
   const reader = config.audioStream.getReader()
+  const duration = await setup(canvas)
   for (let isFirst = true, offset = 0; ; isFirst = false) {
     const result = await reader.read()
     if (result.done) break
