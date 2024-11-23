@@ -12,9 +12,9 @@ export async function setup(canvas: OffscreenCanvas) {
   const duration = 5 * 1_000_000
 
   const vertices: GLfloat[] = [
-    0.0, 0.0, 1.0,
-    1.0, 0.0, 1.0,
-    0.0, 1.0, 1.0,
+    0.0, 0.0, -1.0,
+    1.0, 0.0, -1.0,
+    0.0, 1.0, -1.0,
   ]
   const normals: GLfloat[] = [
     0.0, 0.0, -1.0,
@@ -22,9 +22,9 @@ export async function setup(canvas: OffscreenCanvas) {
     0.0, 0.0, -1.0,
   ]
   const coords: GLfloat[] = [
-    0.0, 0.0, -1.0,
-    0.0, 0.0, -1.0,
-    0.0, 0.0, -1.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
+    0.0, 0.0, 0.0,
   ]
   const params = {
     triangleLength: vertices.length,

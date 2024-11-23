@@ -116,6 +116,10 @@ vec3 interpolation(vec3 v1, vec3 v2, vec3 v3, vec3 n1, vec3 n2, vec3 n3, vec3 p)
   return (d1 * l2n + d2 * l1n) / d;
 }
 
+vec3 divByW(vec4 target) {
+  return target.xyz / target.w;
+}
+
 void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution * 2.0 - 1.0;
   uv *= u_fov / 2.0;
@@ -127,18 +131,16 @@ void main() {
     if (rayVector.x > PI/2.0) rayVector.x *= -1.0;
     if (rayVector.y > PI/2.0) rayVector.y *= -1.0;
   }
-  rayCol = vec4(abs(uv), 1.0, 1.0);
-  return;
   Ray ray;
-  ray.pos = vec3(u_matrix * vec4(0.0, 0.0, 0.0, 1.0));
-  ray.vec = vec3(u_matrix * vec4(rayVector, 1.0));
+  ray.pos = divByW(u_matrix * vec4(0.0, 0.0, 0.0, 1.0));
+  ray.vec = divByW(u_matrix * vec4(rayVector, 1.0));
   rayCol = vec4(1.0, 1.0, 1.0, u_alpha);
-  for (int i = 0; i < triangleLength; i += 3) {
-    for (int j = 0; j >= 0; j++) {
-      if (j < REFLECTION) {
-        rayCol.rgb = vec3(0.0);
-        break;
-      }
+  for (int j = 0; j >= 0; j++) {
+    if (j >= REFLECTION) {
+      rayCol.rgb = vec3(0.0);
+      break;
+    }
+    for (int i = 0; i < triangleLength; i += 3) {
       vec3 v1 = texelFetch(u_data, ivec2(i * 3 + 0, 0), 0).xyz;
       vec3 v2 = texelFetch(u_data, ivec2(i * 3 + 1, 0), 0).xyz;
       vec3 v3 = texelFetch(u_data, ivec2(i * 3 + 2, 0), 0).xyz;
@@ -146,13 +148,13 @@ void main() {
       vec3 n2 = texelFetch(u_data, ivec2(i * 3 + 1, 1), 0).xyz;
       vec3 n3 = texelFetch(u_data, ivec2(i * 3 + 2, 1), 0).xyz;
       vec3 p = hitTrianglePoint(v1, v2, v3, ray.pos, ray.vec);
-      if (!isHitTriangle(v1, v2, v3, p)) {
-        rayCol.rgb = vec3(0.0);
-        break;
-      }
+      if (!isHitTriangle(v1, v2, v3, p) || (mat3(inverseMatrix) * p).z <= 0.0) break;
       TriangleInfo info = color(i);
       rayCol.rgb *= info.color.rgb;
-      if (info.light) break;
+      if (info.light) {
+        rayCol.rgb *= rayCol.a;
+        return;
+      }
       vec3 normal = normalize(vec3(interpolation(v1, v2, v3, n1, n2, n3, p)));
       bool isRefract = rand(vec2(rand(uv), rand(p.xy))) < info.color.a;
       if (isRefract) ray.vec = refract(normalize(p - ray.pos), normal, info.refraction);
@@ -160,6 +162,4 @@ void main() {
       ray.pos = p;
     }
   }
-
-  rayCol.rgb *= rayCol.a;
 }
