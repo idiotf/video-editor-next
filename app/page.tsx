@@ -1,23 +1,27 @@
 'use client'
 
 import React from 'react'
-import getAudioStream from './audio-processor'
-import type { Configuration } from './worker'
+import getAudioStream from '@/app/audio-processor'
+import type { DefaultConfiguration, Configuration } from '@/app/worker'
 
 export default function Home() {
   const [worker, setWorker] = React.useState<Worker | null>(null)
   const [blobURL, setBlobURL] = React.useState<string | undefined>(undefined)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
-  const defaultConfig: Omit<Configuration, 'audioStream' | 'sharedBuffer' | 'audioStart'> = {
-    width: 3384,
-    height: 1440,
-    framerate: 24,
-    bitrate: 18_000_000, // 18Mbps
-    audioBitrate: 192_000, // 192Kbps
+  const defaultConfig: DefaultConfiguration = {
+    video: {
+      width: 2560,
+      height: 1440,
+      framerate: 30,
+      bitrate: 18_000_000, // 18Mbps
+    },
+    // audio: {
+    //   bitrate: 192_000, // 192Kbps
+    //   samplerate: 44_100, // 44.1kHz
+    //   numberOfChannels: 2,
+    // },
     contentType: 'video/mp4',
-    samplerate: 44_100, // 44.1kHz
-    numberOfChannels: 2,
-  }
+  } satisfies DefaultConfiguration
   const createVideo: React.MouseEventHandler<HTMLButtonElement> = async () => {
     if (!worker) return
     if (buttonRef.current) {
@@ -26,17 +30,17 @@ export default function Home() {
     }
     const sharedBuffer = new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * 2)
     const loadingArray = new Uint8ClampedArray(sharedBuffer)
-    const audioStream = await getAudioStream({
-      bitrate: defaultConfig.bitrate,
+    const audioStream = defaultConfig.audio ? await getAudioStream({
+      bitrate: defaultConfig.audio.bitrate,
       contentType: defaultConfig.contentType,
-      samplerate: defaultConfig.samplerate,
-    })
+      samplerate: defaultConfig.audio.samplerate,
+    }) : null
     if (buttonRef.current) buttonRef.current.textContent = 'Encoding... (0%)'
-    const config: Configuration = {
+    const config = {
       ...defaultConfig,
-      audioStream,
+      audio: defaultConfig.audio && audioStream ? { ...defaultConfig.audio, stream: audioStream } : undefined,
       sharedBuffer,
-    }
+    } satisfies Configuration
     const loadingAnimation = requestAnimationFrame(function frame() {
       if (!buttonRef.current?.disabled) return
       switch (loadingArray[1]) {
@@ -55,7 +59,7 @@ export default function Home() {
       }
       requestAnimationFrame(frame)
     })
-    worker.postMessage(config, [config.audioStream])
+    worker.postMessage(config, config.audio ? [config.audio.stream] : [])
     worker.addEventListener('message', ({ data }: MessageEvent<ArrayBuffer>) => {
       if (blobURL) URL.revokeObjectURL(blobURL)
       const blob = new Blob([data], { type: defaultConfig.contentType })

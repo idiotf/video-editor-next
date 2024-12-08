@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
       }],
     }]
   },
+  webpack(config, context) {
+    config.module.rules.push({
+      test: /\.(vs|fs)$/i,
+      type: 'asset/source',
+    })
+    return config
+  }
 }
 
 export default nextConfig
