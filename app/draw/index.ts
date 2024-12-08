@@ -4,7 +4,7 @@ import textureShader from '@/app/draw/shaders/main.fs'
 import fragmentShader from '@/app/draw/shaders/spiral.fs'
 
 let draw: (timestamp: number) => void
-function error(error: any): never {
+function error(error: unknown): never {
   throw error
 }
 

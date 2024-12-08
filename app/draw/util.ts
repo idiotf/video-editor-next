@@ -1,4 +1,4 @@
-function error(error: any): never {
+function error(error: unknown): never {
   throw error
 }
 
