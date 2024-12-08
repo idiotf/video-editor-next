@@ -8,6 +8,7 @@ export default function Home() {
   const [worker, setWorker] = React.useState<Worker | null>(null)
   const [blobURL, setBlobURL] = React.useState<string | undefined>(undefined)
   const buttonRef = React.useRef<HTMLButtonElement>(null)
+
   const defaultConfig: DefaultConfiguration = {
     video: {
       width: 2560,
@@ -15,11 +16,11 @@ export default function Home() {
       framerate: 30,
       bitrate: 18_000_000, // 18Mbps
     },
-    // audio: {
-    //   bitrate: 192_000, // 192Kbps
-    //   samplerate: 44_100, // 44.1kHz
-    //   numberOfChannels: 2,
-    // },
+    audio: {
+      bitrate: 192_000, // 192Kbps
+      samplerate: 44_100, // 44.1kHz
+      numberOfChannels: 2,
+    },
     contentType: 'video/mp4',
   } satisfies DefaultConfiguration
   const createVideo: React.MouseEventHandler<HTMLButtonElement> = async () => {
@@ -30,11 +31,7 @@ export default function Home() {
     }
     const sharedBuffer = new SharedArrayBuffer(Uint8Array.BYTES_PER_ELEMENT * 2)
     const loadingArray = new Uint8ClampedArray(sharedBuffer)
-    const audioStream = defaultConfig.audio ? await getAudioStream({
-      bitrate: defaultConfig.audio.bitrate,
-      contentType: defaultConfig.contentType,
-      samplerate: defaultConfig.audio.samplerate,
-    }) : null
+    const audioStream = defaultConfig.audio ? await getAudioStream(defaultConfig.audio) : null
     if (buttonRef.current) buttonRef.current.textContent = 'Encoding... (0%)'
     const config = {
       ...defaultConfig,

@@ -1,19 +1,23 @@
 import { drawFrame, setup } from '@/app/draw-frame'
 import { Muxer, ArrayBufferTarget } from 'mp4-muxer'
 
+export interface AudioConfig {
+  bitrate: number
+  stream: ReadableStream<AudioData>
+  samplerate: number
+  numberOfChannels: number
+}
+
+export interface VideoConfig {
+  bitrate: number
+  framerate: number
+  width: number
+  height: number
+}
+
 export interface Configuration {
-  audio?: {
-    bitrate: number
-    stream: ReadableStream<AudioData>
-    samplerate: number
-    numberOfChannels: number
-  }
-  video?: {
-    bitrate: number
-    framerate: number
-    width: number
-    height: number
-  }
+  audio?: AudioConfig
+  video?: VideoConfig
   sharedBuffer: SharedArrayBuffer
   contentType: string
 }
